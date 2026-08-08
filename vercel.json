@@ -20,11 +20,12 @@
       "dest": "app/main.py"
     },
     {
-      "handle": "filesystem"
+      "src": "/static/(.*)",
+      "dest": "public/static/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "public/index.html"
     }
   ]
 }
