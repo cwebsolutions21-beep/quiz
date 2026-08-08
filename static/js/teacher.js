@@ -36,6 +36,7 @@ async function loadTeacherDashboard() {
                         <button class="btn btn-primary btn-xs" onclick="updateExamStatus(${exam.id}, 'live')">🚀 Go Live</button>
                         <button class="btn btn-outline btn-xs" onclick="openQuestionsManager(${exam.id})">❓ Questions (${exam.question_count})</button>
                         <button class="btn btn-outline btn-xs" onclick="openEditExamModal(${exam.id})">✏️ Edit</button>
+                        <button class="btn btn-outline btn-xs" onclick="copyShareLink(${exam.id}, \`${exam.title.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">🔗 Share Link</button>
                         <button class="btn btn-danger-outline btn-xs" onclick="deleteExamPrompt(${exam.id})">🗑️ Delete</button>
                     `;
                     break;
@@ -45,6 +46,7 @@ async function loadTeacherDashboard() {
                         <button class="btn btn-primary btn-xs" onclick="updateExamStatus(${exam.id}, 'live')">🚀 Start Exam</button>
                         <button class="btn btn-outline btn-xs" onclick="openQuestionsManager(${exam.id})">❓ Questions (${exam.question_count})</button>
                         <button class="btn btn-outline btn-xs" onclick="openEditExamModal(${exam.id})">✏️ Edit</button>
+                        <button class="btn btn-outline btn-xs" onclick="copyShareLink(${exam.id}, \`${exam.title.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">🔗 Share Link</button>
                         <button class="btn btn-danger-outline btn-xs" onclick="deleteExamPrompt(${exam.id})">🗑️ Delete</button>
                     `;
                     break;
@@ -52,13 +54,15 @@ async function loadTeacherDashboard() {
                     statusBadge = '<span class="badge badge-success">Live</span>';
                     actionButtons = `
                         <button class="btn btn-danger btn-xs" onclick="updateExamStatus(${exam.id}, 'ended')">🛑 End Exam</button>
-                        <button class="btn btn-primary btn-xs" onclick="openLiveMonitor(${exam.id}, '${exam.title}')">👁️ Monitor</button>
+                        <button class="btn btn-primary btn-xs" onclick="openLiveMonitor(${exam.id}, \`${exam.title.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">👁️ Monitor</button>
+                        <button class="btn btn-outline btn-xs" onclick="copyShareLink(${exam.id}, \`${exam.title.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">🔗 Share Link</button>
                     `;
                     break;
                 case 'ended':
                     statusBadge = '<span class="badge badge-danger">Ended</span>';
                     actionButtons = `
-                        <button class="btn btn-outline btn-xs" onclick="openLiveMonitor(${exam.id}, '${exam.title}')">📊 Results</button>
+                        <button class="btn btn-outline btn-xs" onclick="openLiveMonitor(${exam.id}, \`${exam.title.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">📊 Results</button>
+                        <button class="btn btn-outline btn-xs" onclick="copyShareLink(${exam.id}, \`${exam.title.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">🔗 Share Link</button>
                         <button class="btn btn-danger-outline btn-xs" onclick="deleteExamPrompt(${exam.id})">🗑️ Delete</button>
                     `;
                     break;
@@ -657,4 +661,27 @@ function exportMonitorCSV() {
     link.click();
     document.body.removeChild(link);
     showToast('Results exported to CSV successfully.', 'success');
+}
+
+// Copy exam invitation/share link to clipboard for students
+function copyShareLink(examId, examTitle) {
+    const shareUrl = `${window.location.origin}/?exam=${examId}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast(`Share link for "${examTitle}" copied to clipboard!`, 'success');
+    }).catch(err => {
+        // Fallback for non-secure contexts or permission blocks
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast(`Share link for "${examTitle}" copied to clipboard!`, 'success');
+        } catch (e) {
+            showToast('Failed to copy share link: ' + err.message, 'danger');
+        }
+        document.body.removeChild(textArea);
+    });
 }

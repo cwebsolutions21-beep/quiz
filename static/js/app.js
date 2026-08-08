@@ -287,6 +287,13 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 
 // App Initialization
 window.addEventListener('DOMContentLoaded', async () => {
+    // Check for shared exam URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedExamId = urlParams.get('exam');
+    if (sharedExamId) {
+        localStorage.setItem('redirect_exam_id', sharedExamId);
+    }
+
     // Check if token exists
     const token = localStorage.getItem('token');
     if (token) {

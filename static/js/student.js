@@ -77,6 +77,31 @@ async function loadStudentDashboard() {
             `;
             listEl.appendChild(card);
         });
+        
+        // Handle pending URL-shared exam redirects
+        const targetExamId = localStorage.getItem('redirect_exam_id');
+        if (targetExamId) {
+            localStorage.removeItem('redirect_exam_id');
+            const targetExam = exams.find(e => e.id == targetExamId);
+            if (targetExam) {
+                if (targetExam.attempt_id) {
+                    if (targetExam.attempt_status === 'active') {
+                        resumeAttempt(targetExam.attempt_id);
+                    } else {
+                        showToast(`You have already attempted and submitted "${targetExam.title}".`, 'info');
+                        viewResult(targetExam.attempt_id);
+                    }
+                } else {
+                    if (targetExam.status === 'live') {
+                        startAttemptPrompt(targetExam.id, targetExam.title);
+                    } else {
+                        showToast(`The exam "${targetExam.title}" is not active yet.`, 'warning');
+                    }
+                }
+            } else {
+                showToast("The shared exam is not available or is not currently active.", "warning");
+            }
+        }
     } catch (error) {
         showToast(error.message, 'danger');
     }
