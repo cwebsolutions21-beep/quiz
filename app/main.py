@@ -31,6 +31,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    error_messages = []
+    for err in exc.errors():
+        loc = " -> ".join(str(l) for l in err.get("loc", []))
+        msg = err.get("msg", "invalid value")
+        error_messages.append(f"{loc}: {msg}")
+    friendly_msg = "Validation Error: " + "; ".join(error_messages)
+    return JSONResponse(
+        status_code=400,
+        content={"detail": friendly_msg}
+    )
+
 # Initialize database on startup
 @app.on_event("startup")
 def startup_event():
