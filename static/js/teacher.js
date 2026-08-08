@@ -311,7 +311,7 @@ async function saveQuestion(e) {
     const optCImg = document.getElementById('q-opt-c-image').value;
     const optDImg = document.getElementById('q-opt-d-image').value;
 
-    // Validate that either text or image is present for all options
+    // Validate Option A and B are filled (minimum 2 options required)
     if (!optA && !optAImg) {
         showToast("Please provide either text or an uploaded image for Option A.", "warning");
         return;
@@ -320,20 +320,42 @@ async function saveQuestion(e) {
         showToast("Please provide either text or an uploaded image for Option B.", "warning");
         return;
     }
-    if (!optC && !optCImg) {
-        showToast("Please provide either text or an uploaded image for Option C.", "warning");
-        return;
-    }
-    if (!optD && !optDImg) {
-        showToast("Please provide either text or an uploaded image for Option D.", "warning");
+
+    // Check contiguous ordering
+    const optCHasContent = !!(optC || optCImg);
+    const optDHasContent = !!(optD || optDImg);
+    if (optDHasContent && !optCHasContent) {
+        showToast("Please fill Option C before Option D.", "warning");
         return;
     }
 
     // Apply internal fallback placeholder if text is empty but image is present
-    if (!optA) optA = '[Option A]';
-    if (!optB) optB = '[Option B]';
-    if (!optC) optC = '[Option C]';
-    if (!optD) optD = '[Option D]';
+    if (!optA && optAImg) optA = '[Option A]';
+    if (!optB && optBImg) optB = '[Option B]';
+    if (!optC && optCImg) optC = '[Option C]';
+    if (!optD && optDImg) optD = '[Option D]';
+    
+    // Construct option array dynamically based on provided choices
+    const finalOptions = [
+        { option_text: optA, option_image: optAImg || null },
+        { option_text: optB, option_image: optBImg || null }
+    ];
+    if (optCHasContent) {
+        finalOptions.push({ option_text: optC, option_image: optCImg || null });
+    }
+    if (optDHasContent) {
+        finalOptions.push({ option_text: optD, option_image: optDImg || null });
+    }
+
+    // Check that correct letter selected matches an available option choice
+    if (correctLetter === 'C' && !optCHasContent) {
+        showToast("Option C cannot be the correct answer because you only provided 2 options.", "warning");
+        return;
+    }
+    if (correctLetter === 'D' && !optDHasContent) {
+        showToast("Option D cannot be the correct answer because you only provided " + finalOptions.length + " options.", "warning");
+        return;
+    }
     
     let correctText = '';
     if (correctLetter === 'A') correctText = optA;
@@ -346,12 +368,7 @@ async function saveQuestion(e) {
         marks: parseFloat(document.getElementById('q-marks').value),
         negative_marks: parseFloat(document.getElementById('q-neg-marks').value || 0.0),
         difficulty: document.getElementById('q-difficulty').value,
-        options: [
-            { option_text: optA, option_image: optAImg || null },
-            { option_text: optB, option_image: optBImg || null },
-            { option_text: optC, option_image: optCImg || null },
-            { option_text: optD, option_image: optDImg || null }
-        ],
+        options: finalOptions,
         correct_answer: correctText,
         explanation: document.getElementById('q-explanation').value,
         topic: document.getElementById('q-topic').value,
