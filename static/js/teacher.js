@@ -824,7 +824,45 @@ function copyShareLink(examId, examTitle) {
     });
 }
 
-// Convert option image file selection to base64 data URL
+// Compress image files client-side using HTML5 Canvas to fit Vercel payload limits
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // Limit max dimension to 800px
+            const max_size = 800;
+            if (width > height) {
+                if (width > max_size) {
+                    height = Math.round((height * max_size) / width);
+                    width = max_size;
+                }
+            } else {
+                if (height > max_size) {
+                    width = Math.round((width * max_size) / height);
+                    height = max_size;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to highly compressed JPEG
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(dataUrl);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// Convert option image file selection to base64 data URL with compression
 function handleOptionImageUpload(optionLetter) {
     const fileInput = document.getElementById(`q-opt-${optionLetter}-file`);
     const hiddenInput = document.getElementById(`q-opt-${optionLetter}-image`);
@@ -833,17 +871,15 @@ function handleOptionImageUpload(optionLetter) {
     const file = fileInput.files[0];
     if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        hiddenInput.value = e.target.result;
+    compressImage(file, function(compressedBase64) {
+        hiddenInput.value = compressedBase64;
         btn.innerHTML = '✅ Loaded';
         btn.classList.add('btn-success');
         showToast(`Option ${optionLetter.toUpperCase()} image uploaded!`, 'success');
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
-// Convert question image file selection to base64 data URL
+// Convert question image file selection to base64 data URL with compression
 function handleQuestionImageUpload() {
     const fileInput = document.getElementById('q-image-file');
     const hiddenInput = document.getElementById('q-image');
@@ -852,14 +888,12 @@ function handleQuestionImageUpload() {
     const file = fileInput.files[0];
     if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        hiddenInput.value = e.target.result;
+    compressImage(file, function(compressedBase64) {
+        hiddenInput.value = compressedBase64;
         btn.innerHTML = '✅ Image Loaded';
         btn.classList.add('btn-success');
         showToast('Question image uploaded!', 'success');
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
 // Reset upload button styling and status
