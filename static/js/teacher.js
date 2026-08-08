@@ -266,13 +266,13 @@ function selectQuestion(q) {
     
     // Set options
     const options = q.options || [];
-    document.getElementById('q-opt-a').value = options[0] ? options[0].option_text : '';
+    document.getElementById('q-opt-a').value = (options[0] && options[0].option_text !== '[Option A]') ? options[0].option_text : '';
     document.getElementById('q-opt-a-image').value = options[0] ? (options[0].option_image || '') : '';
-    document.getElementById('q-opt-b').value = options[1] ? options[1].option_text : '';
+    document.getElementById('q-opt-b').value = (options[1] && options[1].option_text !== '[Option B]') ? options[1].option_text : '';
     document.getElementById('q-opt-b-image').value = options[1] ? (options[1].option_image || '') : '';
-    document.getElementById('q-opt-c').value = options[2] ? options[2].option_text : '';
+    document.getElementById('q-opt-c').value = (options[2] && options[2].option_text !== '[Option C]') ? options[2].option_text : '';
     document.getElementById('q-opt-c-image').value = options[2] ? (options[2].option_image || '') : '';
-    document.getElementById('q-opt-d').value = options[3] ? options[3].option_text : '';
+    document.getElementById('q-opt-d').value = (options[3] && options[3].option_text !== '[Option D]') ? options[3].option_text : '';
     document.getElementById('q-opt-d-image').value = options[3] ? (options[3].option_image || '') : '';
     
     // Identify which index matches correct answer text
@@ -301,10 +301,39 @@ async function saveQuestion(e) {
     
     // Map correct option value back to original option text
     const correctLetter = document.getElementById('q-correct').value;
-    const optA = document.getElementById('q-opt-a').value;
-    const optB = document.getElementById('q-opt-b').value;
-    const optC = document.getElementById('q-opt-c').value;
-    const optD = document.getElementById('q-opt-d').value;
+    let optA = document.getElementById('q-opt-a').value;
+    let optB = document.getElementById('q-opt-b').value;
+    let optC = document.getElementById('q-opt-c').value;
+    let optD = document.getElementById('q-opt-d').value;
+    
+    const optAImg = document.getElementById('q-opt-a-image').value;
+    const optBImg = document.getElementById('q-opt-b-image').value;
+    const optCImg = document.getElementById('q-opt-c-image').value;
+    const optDImg = document.getElementById('q-opt-d-image').value;
+
+    // Validate that either text or image is present for all options
+    if (!optA && !optAImg) {
+        showToast("Please provide either text or an uploaded image for Option A.", "warning");
+        return;
+    }
+    if (!optB && !optBImg) {
+        showToast("Please provide either text or an uploaded image for Option B.", "warning");
+        return;
+    }
+    if (!optC && !optCImg) {
+        showToast("Please provide either text or an uploaded image for Option C.", "warning");
+        return;
+    }
+    if (!optD && !optDImg) {
+        showToast("Please provide either text or an uploaded image for Option D.", "warning");
+        return;
+    }
+
+    // Apply internal fallback placeholder if text is empty but image is present
+    if (!optA) optA = '[Option A]';
+    if (!optB) optB = '[Option B]';
+    if (!optC) optC = '[Option C]';
+    if (!optD) optD = '[Option D]';
     
     let correctText = '';
     if (correctLetter === 'A') correctText = optA;
@@ -318,10 +347,10 @@ async function saveQuestion(e) {
         negative_marks: parseFloat(document.getElementById('q-neg-marks').value || 0.0),
         difficulty: document.getElementById('q-difficulty').value,
         options: [
-            { option_text: optA, option_image: document.getElementById('q-opt-a-image').value || null },
-            { option_text: optB, option_image: document.getElementById('q-opt-b-image').value || null },
-            { option_text: optC, option_image: document.getElementById('q-opt-c-image').value || null },
-            { option_text: optD, option_image: document.getElementById('q-opt-d-image').value || null }
+            { option_text: optA, option_image: optAImg || null },
+            { option_text: optB, option_image: optBImg || null },
+            { option_text: optC, option_image: optCImg || null },
+            { option_text: optD, option_image: optDImg || null }
         ],
         correct_answer: correctText,
         explanation: document.getElementById('q-explanation').value,
