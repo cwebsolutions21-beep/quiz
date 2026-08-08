@@ -6,6 +6,7 @@ import time
 import os
 from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.db import get_db_connection
 
 SECRET_KEY = b"quiz_app_secret_key_extremely_secure_12345"
 TOKEN_EXPIRY = 24 * 60 * 60 # 24 hours in seconds
@@ -87,6 +88,17 @@ def get_current_user(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired session token"
         )
+    
+    # Authoritative verification that the user exists in database
+    conn = get_db_connection()
+    user = conn.execute("SELECT id FROM users WHERE id = ?", (payload["user_id"],)).fetchone()
+    conn.close()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User session invalid or deleted"
+        )
+        
     return payload
 
 def get_current_teacher(request: Request):
