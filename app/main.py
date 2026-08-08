@@ -35,6 +35,23 @@ app.add_middleware(
 @app.on_event("startup")
 def startup_event():
     init_db()
+    conn = get_db_connection()
+    user = conn.execute("SELECT id FROM users LIMIT 1").fetchone()
+    if not user:
+        cursor = conn.cursor()
+        # Seed default teacher
+        pwd_hash = hash_password("teacher123")
+        cursor.execute(
+            "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'teacher')",
+            ("Professor Ram", "teacher@college.edu", pwd_hash)
+        )
+        # Seed default student
+        cursor.execute(
+            "INSERT INTO users (name, role, roll_no, section, year) VALUES (?, 'student', ?, ?, ?)",
+            ("Alice Student", "21CS1001", "A", "3rd Year")
+        )
+        conn.commit()
+    conn.close()
 
 # Real-time WebSocket connection managers
 class TeacherConnectionManager:
