@@ -1225,10 +1225,17 @@ async def websocket_student(websocket: WebSocket, attempt_id: int, token: Option
 
 
 # SERVING THE SPA FRONTEND
-# Default index.html router
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-index_path = os.path.join(base_dir, "index.html")
-static_dir = os.path.join(base_dir, "static")
+# Resolve project root: works whether app/ is in root or inside api/
+_here = os.path.dirname(os.path.abspath(__file__))
+# Walk up until we find index.html (project root)
+_root = _here
+for _ in range(3):
+    if os.path.exists(os.path.join(_root, "index.html")):
+        break
+    _root = os.path.dirname(_root)
+
+index_path = os.path.join(_root, "index.html")
+static_dir = os.path.join(_root, "static")
 
 @app.get("/")
 def serve_index():
