@@ -802,7 +802,8 @@ function exportMonitorExcel() {
 
 // Copy exam invitation/share link to clipboard for students
 function copyShareLink(examId, examTitle) {
-    const shareUrl = `${window.location.origin}/?exam=${examId}`;
+    const formattedTitle = encodeURIComponent(examTitle).replace(/%20/g, '+');
+    const shareUrl = `${window.location.origin}/?${formattedTitle}&exam=${examId}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
         showToast(`Share link for "${examTitle}" copied to clipboard!`, 'success');
     }).catch(err => {

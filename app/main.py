@@ -52,16 +52,21 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 def startup_event():
     init_db()
     conn = get_db_connection()
-    user = conn.execute("SELECT id FROM users LIMIT 1").fetchone()
-    if not user:
+    # Ensure teacher SANTHOSHINI exists
+    teacher = conn.execute("SELECT id FROM users WHERE email = ?", ("schaitu1706@gmail.com",)).fetchone()
+    if not teacher:
         cursor = conn.cursor()
-        # Seed default teacher
-        pwd_hash = hash_password("teacher123")
+        pwd_hash = hash_password("170617")
         cursor.execute(
             "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'teacher')",
-            ("Professor Ram", "teacher@college.edu", pwd_hash)
+            ("SANTHOSHINI", "schaitu1706@gmail.com", pwd_hash)
         )
-        # Seed default student
+        conn.commit()
+        
+    # Ensure at least one default student exists
+    student = conn.execute("SELECT id FROM users WHERE role = 'student' LIMIT 1").fetchone()
+    if not student:
+        cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO users (name, role, roll_no, section, year) VALUES (?, 'student', ?, ?, ?)",
             ("Alice Student", "21CS1001", "A", "3rd Year")
