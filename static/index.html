@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Online Examination Portal</title>
+    <!-- Google Fonts Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="dark-theme">
+    <!-- Header/Navigation Bar -->
+    <header class="app-header">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">Aegis<span>Exam</span></span>
+        </div>
+        <div class="header-right">
+            <span id="connection-badge" class="badge badge-success hidden">Online</span>
+            <span id="user-info" class="hidden">
+                <span id="user-name">Loading...</span>
+                <span id="user-role-badge" class="role-badge">Student</span>
+            </span>
+            <button id="logout-btn" class="btn btn-outline btn-sm hidden">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="app-container">
+        
+        <!-- ================= AUTH VIEW ================= -->
+        <section id="view-auth" class="view">
+            <div class="auth-card glass">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form active">
+                    <h2>Welcome Back</h2>
+                    <p class="subtitle">Please sign in to access your exam dashboard.</p>
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" required placeholder="name@college.edu">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                </form>
+
+                <!-- Registration Form -->
+                <form id="register-form" class="auth-form">
+                    <h2>Create Account</h2>
+                    <p class="subtitle">Join as a teacher to schedule exams, or as a student to take them.</p>
+                    <div class="form-group">
+                        <label for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email Address</label>
+                        <input type="email" id="reg-email" required placeholder="john.doe@college.edu">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" required placeholder="Min 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Role</label>
+                        <div class="role-selector">
+                            <label class="role-option">
+                                <input type="radio" name="reg-role" value="student" checked>
+                                <span class="role-box">
+                                    <span class="role-title">Student</span>
+                                    <span class="role-desc">Attempt assigned exams and view results</span>
+                                </span>
+                            </label>
+                            <label class="role-option">
+                                <input type="radio" name="reg-role" value="teacher">
+                                <span class="role-box">
+                                    <span class="role-title">Teacher / Admin</span>
+                                    <span class="role-desc">Create exams, manage questions, monitor live</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Register Account</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= STUDENT DASHBOARD ================= -->
+        <section id="view-student-dash" class="view hidden">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Student Portal</h1>
+                    <p class="subtitle">View and attempt your scheduled exams.</p>
+                </div>
+            </div>
+            <div id="student-exam-list" class="grid-container">
+                <!-- Exam Cards dynamic -->
+            </div>
+        </section>
+
+        <!-- ================= STUDENT EXAM SCREEN ================= -->
+        <section id="view-student-exam" class="view hidden">
+            <!-- Fullscreen Prompt Overlay -->
+            <div id="fullscreen-overlay" class="overlay glass hidden">
+                <div class="modal-card text-center">
+                    <h2>Mandatory Fullscreen Mode</h2>
+                    <p>This examination requires you to enter full-screen mode to prevent cheating.</p>
+                    <p class="warning-text">⚠️ Exiting fullscreen or changing tabs at any point will automatically submit your exam.</p>
+                    <button id="enter-fullscreen-btn" class="btn btn-primary">Enter Fullscreen & Begin</button>
+                </div>
+            </div>
+
+            <!-- Main Test UI -->
+            <div class="exam-layout">
+                <div class="exam-main">
+                    <div class="exam-navbar glass">
+                        <div class="exam-title-info">
+                            <h2 id="student-exam-title">Exam Title</h2>
+                            <span class="badge badge-info" id="student-exam-meta">Q1 of 10</span>
+                        </div>
+                        <div class="exam-timer-container">
+                            <span class="timer-label">Time Remaining:</span>
+                            <span id="exam-timer" class="timer-val">00:00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Question Card -->
+                    <div id="question-card" class="question-card glass">
+                        <div class="question-header">
+                            <span class="question-num" id="q-num-badge">Question 1</span>
+                            <span class="question-marks" id="q-marks-badge">Marks: 1.0</span>
+                        </div>
+                        
+                        <div class="question-body">
+                            <p id="question-text" class="question-text">Loading question...</p>
+                            <div id="question-image-container" class="question-image-container hidden">
+                                <img id="question-image" src="" alt="Question diagram">
+                            </div>
+                        </div>
+
+                        <div class="question-options" id="options-container">
+                            <!-- Shuffled options will go here -->
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav Controls -->
+                    <div class="exam-controls">
+                        <button id="prev-q-btn" class="btn btn-outline">Previous</button>
+                        <button id="mark-review-btn" class="btn btn-warning-outline">Mark for Review</button>
+                        <button id="save-next-btn" class="btn btn-primary">Save & Next</button>
+                        <button id="submit-exam-btn" class="btn btn-danger">Submit Exam</button>
+                    </div>
+                </div>
+
+                <!-- Right Side Question Navigator -->
+                <div class="exam-sidebar glass">
+                    <h3>Exam Navigator</h3>
+                    <div class="nav-legend">
+                        <span class="legend-item"><span class="legend-dot status-answered"></span> Answered</span>
+                        <span class="legend-item"><span class="legend-dot status-unanswered"></span> Unanswered</span>
+                        <span class="legend-item"><span class="legend-dot status-review"></span> Review</span>
+                    </div>
+                    <div class="question-grid" id="question-grid">
+                        <!-- Navigation Grid 1 2 3 ... -->
+                    </div>
+                    <div class="sidebar-footer">
+                        <div class="student-profile-summary">
+                            <p><strong>Candidate:</strong> <span id="candidate-name">Student</span></p>
+                            <p><strong>Status:</strong> <span id="exam-conn-status">Syncing...</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= STUDENT RESULT SCREEN ================= -->
+        <section id="view-student-result" class="view hidden">
+            <div class="result-container">
+                <div class="result-header glass text-center">
+                    <div class="result-icon-badge" id="result-icon">🎓</div>
+                    <h1 id="result-exam-title">Exam Completed</h1>
+                    <p class="subtitle" id="result-submission-msg">Your attempt has been successfully evaluated.</p>
+                    
+                    <div class="score-radial-container">
+                        <div class="score-circle">
+                            <span class="score-num" id="result-score">0.0 / 0.0</span>
+                            <span class="score-pct" id="result-percentage">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <span class="stat-val" id="stat-total-q">0</span>
+                        <span class="stat-lbl">Total Questions</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-val text-success" id="stat-correct-q">0</span>
+                        <span class="stat-lbl">Correct Answers</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-val text-danger" id="stat-incorrect-q">0</span>
+                        <span class="stat-lbl">Wrong Answers</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-val text-warning" id="stat-unattempted-q">0</span>
+                        <span class="stat-lbl">Unattempted</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-val" id="stat-time-taken">0s</span>
+                        <span class="stat-lbl">Time Taken</span>
+                    </div>
+                    <div class="stat-card glass">
+                        <span class="stat-val text-danger" id="stat-violations">0</span>
+                        <span class="stat-lbl">Violations logged</span>
+                    </div>
+                </div>
+
+                <div class="result-actions text-center">
+                    <button class="btn btn-primary" onclick="showView('student-dash')">Back to Dashboard</button>
+                    <button class="btn btn-outline" id="review-answers-btn">Review Answers Detailed</button>
+                </div>
+
+                <div id="detailed-answers-review" class="detailed-review hidden">
+                    <h2>Question-by-Question Review</h2>
+                    <div id="review-questions-container">
+                        <!-- Questions, correct answers, explanations -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TEACHER DASHBOARD ================= -->
+        <section id="view-teacher-dash" class="view hidden">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Teacher Dashboard</h1>
+                    <p class="subtitle">Manage exams, customize question banks, and monitor live attempts.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openCreateExamModal()">➕ Create Exam</button>
+                    <button class="btn btn-outline" onclick="openQuestionBank()">🗄️ Question Bank</button>
+                </div>
+            </div>
+
+            <!-- Exam Manager Table -->
+            <div class="table-container glass">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Exam Details</th>
+                            <th>Duration</th>
+                            <th>Total Marks</th>
+                            <th>Questions</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacher-exams-tbody">
+                        <!-- Exam rows dynamic -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================= TEACHER MONITOR SCREEN ================= -->
+        <section id="view-teacher-monitor" class="view hidden">
+            <div class="dashboard-header">
+                <div>
+                    <button class="btn btn-outline btn-sm mb-1" onclick="showView('teacher-dash')">← Back to Dashboard</button>
+                    <h1 id="monitor-exam-title">Live Monitoring</h1>
+                    <p class="subtitle">Real-time supervision of active candidate attempts.</p>
+                </div>
+                <div class="monitor-stats glass">
+                    <div class="m-stat">
+                        <span class="m-val" id="monitor-active-count">0</span>
+                        <span class="m-lbl">Active Students</span>
+                    </div>
+                    <div class="m-stat">
+                        <span class="m-val" id="monitor-submitted-count">0</span>
+                        <span class="m-lbl">Submitted</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container glass">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>Submitted</th>
+                            <th>Final Score</th>
+                            <th>Violation Flag</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monitor-students-tbody">
+                        <!-- Monitoring rows dynamic -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================= MODALS ================= -->
+
+        <!-- Create/Edit Exam Modal -->
+        <div id="exam-modal" class="overlay glass hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2 id="exam-modal-title">Create New Examination</h2>
+                    <button class="modal-close" onclick="closeExamModal()">×</button>
+                </div>
+                <form id="exam-form" onsubmit="saveExam(event)">
+                    <input type="hidden" id="edit-exam-id">
+                    <div class="form-group">
+                        <label for="exam-title">Exam Title</label>
+                        <input type="text" id="exam-title" required placeholder="e.g. Midterm Physics 101">
+                    </div>
+                    <div class="form-group">
+                        <label for="exam-desc">Description</label>
+                        <textarea id="exam-desc" rows="2" placeholder="Instructions or details..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="exam-duration">Duration (Minutes)</label>
+                            <input type="number" id="exam-duration" required min="1" placeholder="90">
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="exam-marks">Total Marks</label>
+                            <input type="number" id="exam-marks" step="0.5" required min="1" placeholder="100">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="exam-negative">Negative Marking per Question</label>
+                            <input type="number" id="exam-negative" step="0.05" min="0" placeholder="0.25">
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="exam-status">Exam Status</label>
+                            <select id="exam-status">
+                                <option value="draft">Draft</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="live">Live</option>
+                                <option value="ended">Ended</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block mt-1">Save Exam</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Question Bank / Question Manager Modal -->
+        <div id="qmanager-modal" class="overlay glass hidden">
+            <div class="modal-card modal-lg">
+                <div class="modal-header">
+                    <h2 id="qmanager-title">Manage Exam Questions</h2>
+                    <button class="modal-close" onclick="closeQManager()">×</button>
+                </div>
+                
+                <div class="qmanager-layout">
+                    <div class="qmanager-sidebar">
+                        <button class="btn btn-primary btn-block mb-1" onclick="openAddQuestionForm()">➕ Add Question</button>
+                        <div class="header-actions mb-1">
+                            <button class="btn btn-outline btn-xs" onclick="exportQuestions()">📥 Export</button>
+                            <button class="btn btn-outline btn-xs" onclick="triggerImport()">📤 Import</button>
+                            <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importQuestions(event)">
+                        </div>
+                        <div class="questions-list-sidebar" id="qmanager-list">
+                            <!-- Question sidebar items -->
+                        </div>
+                    </div>
+
+                    <div class="qmanager-main">
+                        <div id="qmanager-placeholder" class="text-center p-3">
+                            <p>Select a question from the list to edit, or click <strong>Add Question</strong> to create a new one.</p>
+                        </div>
+                        
+                        <form id="question-form" class="hidden" onsubmit="saveQuestion(event)">
+                            <input type="hidden" id="question-edit-id">
+                            
+                            <div class="form-group">
+                                <label for="q-text">Question Text (Markdown/Code styling supported)</label>
+                                <textarea id="q-text" rows="3" required placeholder="Write the question statement here..."></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-4">
+                                    <label for="q-marks">Marks</label>
+                                    <input type="number" id="q-marks" step="0.5" required min="0.5" value="1.0">
+                                </div>
+                                <div class="form-group col-4">
+                                    <label for="q-neg-marks">Negative Marks</label>
+                                    <input type="number" id="q-neg-marks" step="0.05" min="0" value="0.0">
+                                </div>
+                                <div class="form-group col-4">
+                                    <label for="q-difficulty">Difficulty</label>
+                                    <select id="q-difficulty">
+                                        <option value="easy">Easy</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Options (Provide exactly 4 options)</label>
+                                <div class="options-inputs">
+                                    <div class="option-input-row">
+                                        <span class="opt-lbl">A</span>
+                                        <input type="text" id="q-opt-a" required placeholder="Option A text">
+                                    </div>
+                                    <div class="option-input-row">
+                                        <span class="opt-lbl">B</span>
+                                        <input type="text" id="q-opt-b" required placeholder="Option B text">
+                                    </div>
+                                    <div class="option-input-row">
+                                        <span class="opt-lbl">C</span>
+                                        <input type="text" id="q-opt-c" required placeholder="Option C text">
+                                    </div>
+                                    <div class="option-input-row">
+                                        <span class="opt-lbl">D</span>
+                                        <input type="text" id="q-opt-d" required placeholder="Option D text">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="q-correct">Correct Option</label>
+                                <select id="q-correct" required>
+                                    <option value="">Select Correct Option</option>
+                                    <option value="A">Option A</option>
+                                    <option value="B">Option B</option>
+                                    <option value="C">Option C</option>
+                                    <option value="D">Option D</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="q-explanation">Optional Explanation (shown after submission)</label>
+                                <textarea id="q-explanation" rows="2" placeholder="Detailed explanation..."></textarea>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-6">
+                                    <label for="q-topic">Topic/Subject</label>
+                                    <input type="text" id="q-topic" placeholder="e.g. Mechanics">
+                                </div>
+                                <div class="form-group col-6">
+                                    <label for="q-image">Optional Image (Base64 URL)</label>
+                                    <input type="text" id="q-image" placeholder="data:image/png;base64,...">
+                                </div>
+                            </div>
+
+                            <div class="form-actions mt-1">
+                                <button type="submit" class="btn btn-primary">Save Question</button>
+                                <button type="button" class="btn btn-danger-outline" id="delete-q-btn" onclick="deleteQuestion()">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Global Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Confirmation Modal Dialog -->
+    <div id="confirm-modal" class="overlay glass hidden">
+        <div class="modal-card confirm-card text-center">
+            <h2 id="confirm-title">Are you sure?</h2>
+            <p id="confirm-msg">Please confirm this action.</p>
+            <div class="confirm-actions">
+                <button id="confirm-cancel-btn" class="btn btn-outline">Cancel</button>
+                <button id="confirm-ok-btn" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/student.js"></script>
+    <script src="/static/js/teacher.js"></script>
+</body>
+</html>
