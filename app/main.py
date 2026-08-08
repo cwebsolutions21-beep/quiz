@@ -1225,24 +1225,50 @@ async def websocket_student(websocket: WebSocket, attempt_id: int, token: Option
 
 
 # SERVING THE SPA FRONTEND
-# Resolve project root: works whether app/ is in root or inside api/
-_here = os.path.dirname(os.path.abspath(__file__))
-# Walk up until we find index.html (project root)
-_root = _here
-for _ in range(3):
-    if os.path.exists(os.path.join(_root, "index.html")):
-        break
-    _root = os.path.dirname(_root)
+# Try known Vercel path first, then walk up from __file__
+def _find_root():
+    # Vercel bundles files at /var/task
+    if os.path.exists("/var/task/index.html"):
+        return "/var/task"
+    # Walk up from this file's directory
+    candidate = os.path.dirname(os.path.abspath(__file__))
+    for _ in range(4):
+        if os.path.exists(os.path.join(candidate, "index.html")):
+            return candidate
+        parent = os.path.dirname(candidate)
+        if parent == candidate:
+            break
+        candidate = parent
+    return os.path.dirname(os.path.abspath(__file__))
 
+_root = _find_root()
 index_path = os.path.join(_root, "index.html")
 static_dir = os.path.join(_root, "static")
+
+@app.get("/debug-fs")
+def debug_fs():
+    """Temporary debug: show filesystem layout on Vercel"""
+    import glob
+    info = {
+        "root": _root,
+        "index_path": index_path,
+        "index_exists": os.path.exists(index_path),
+        "static_dir": static_dir,
+        "static_exists": os.path.exists(static_dir),
+        "cwd": os.getcwd(),
+        "file": __file__,
+        "var_task_exists": os.path.exists("/var/task"),
+        "var_task_contents": os.listdir("/var/task") if os.path.exists("/var/task") else [],
+    }
+    return info
 
 @app.get("/")
 def serve_index():
     return FileResponse(index_path)
 
-# Serve specific static files dynamically if static directory mounted
+# Mount static files
 try:
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
-except Exception:
-    pass
+except Exception as e:
+    print(f"StaticFiles mount failed: {e} | static_dir={static_dir}")
+
