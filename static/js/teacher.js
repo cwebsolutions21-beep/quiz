@@ -867,6 +867,7 @@ function handleOptionImageUpload(optionLetter) {
     const fileInput = document.getElementById(`q-opt-${optionLetter}-file`);
     const hiddenInput = document.getElementById(`q-opt-${optionLetter}-image`);
     const btn = document.getElementById(`q-opt-${optionLetter}-upload-btn`);
+    const clearBtn = document.getElementById(`q-opt-${optionLetter}-clear-btn`);
     
     const file = fileInput.files[0];
     if (!file) return;
@@ -875,6 +876,7 @@ function handleOptionImageUpload(optionLetter) {
         hiddenInput.value = compressedBase64;
         btn.innerHTML = '✅ Loaded';
         btn.classList.add('btn-success');
+        if (clearBtn) clearBtn.classList.remove('hidden');
         showToast(`Option ${optionLetter.toUpperCase()} image uploaded!`, 'success');
     });
 }
@@ -884,6 +886,7 @@ function handleQuestionImageUpload() {
     const fileInput = document.getElementById('q-image-file');
     const hiddenInput = document.getElementById('q-image');
     const btn = document.getElementById('q-image-upload-btn');
+    const clearBtn = document.getElementById('q-image-clear-btn');
     
     const file = fileInput.files[0];
     if (!file) return;
@@ -892,6 +895,7 @@ function handleQuestionImageUpload() {
         hiddenInput.value = compressedBase64;
         btn.innerHTML = '✅ Image Loaded';
         btn.classList.add('btn-success');
+        if (clearBtn) clearBtn.classList.remove('hidden');
         showToast('Question image uploaded!', 'success');
     });
 }
@@ -902,25 +906,69 @@ function resetUploadButtons() {
         const btn = document.getElementById(`q-opt-${let}-upload-btn`);
         const hidden = document.getElementById(`q-opt-${let}-image`);
         const fileInput = document.getElementById(`q-opt-${let}-file`);
+        const clearBtn = document.getElementById(`q-opt-${let}-clear-btn`);
         if (fileInput) fileInput.value = '';
         if (hidden && hidden.value) {
             btn.innerHTML = '✅ Change';
             btn.classList.add('btn-success');
-        } else if (btn) {
-            btn.innerHTML = '🖼️ Upload';
-            btn.classList.remove('btn-success');
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        } else {
+            if (btn) {
+                btn.innerHTML = '🖼️ Upload';
+                btn.classList.remove('btn-success');
+            }
+            if (clearBtn) clearBtn.classList.add('hidden');
         }
     });
     
     const qBtn = document.getElementById('q-image-upload-btn');
     const qHidden = document.getElementById('q-image');
     const qFileInput = document.getElementById('q-image-file');
+    const qClearBtn = document.getElementById('q-image-clear-btn');
     if (qFileInput) qFileInput.value = '';
     if (qHidden && qHidden.value) {
         qBtn.innerHTML = '✅ Change Image';
         qBtn.classList.add('btn-success');
-    } else if (qBtn) {
-        qBtn.innerHTML = '🖼️ Upload Image';
-        qBtn.classList.remove('btn-success');
+        if (qClearBtn) qClearBtn.classList.remove('hidden');
+    } else {
+        if (qBtn) {
+            qBtn.innerHTML = '🖼️ Upload Image';
+            qBtn.classList.remove('btn-success');
+        }
+        if (qClearBtn) qClearBtn.classList.add('hidden');
     }
+}
+
+// Clear Option Image function
+function clearOptionImage(optionLetter) {
+    const hiddenInput = document.getElementById(`q-opt-${optionLetter}-image`);
+    const btn = document.getElementById(`q-opt-${optionLetter}-upload-btn`);
+    const fileInput = document.getElementById(`q-opt-${optionLetter}-file`);
+    const clearBtn = document.getElementById(`q-opt-${optionLetter}-clear-btn`);
+    
+    if (hiddenInput) hiddenInput.value = '';
+    if (fileInput) fileInput.value = '';
+    if (btn) {
+        btn.innerHTML = '🖼️ Upload';
+        btn.classList.remove('btn-success');
+    }
+    if (clearBtn) clearBtn.classList.add('hidden');
+    showToast(`Option ${optionLetter.toUpperCase()} image cleared.`, 'info');
+}
+
+// Clear Question Image function
+function clearQuestionImage() {
+    const hiddenInput = document.getElementById('q-image');
+    const btn = document.getElementById('q-image-upload-btn');
+    const fileInput = document.getElementById('q-image-file');
+    const clearBtn = document.getElementById('q-image-clear-btn');
+    
+    if (hiddenInput) hiddenInput.value = '';
+    if (fileInput) fileInput.value = '';
+    if (btn) {
+        btn.innerHTML = '🖼️ Upload Image';
+        btn.classList.remove('btn-success');
+    }
+    if (clearBtn) clearBtn.classList.add('hidden');
+    showToast('Question image cleared.', 'info');
 }
