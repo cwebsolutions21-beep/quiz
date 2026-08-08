@@ -2,7 +2,7 @@ import datetime
 import json
 import random
 import time
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Set, Optional, Union
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -151,8 +151,9 @@ class ExamCreateSchema(BaseModel):
     start_time: Optional[str] = None
     end_time: Optional[str] = None
 
-class OptionSchema(BaseModel):
+class OptionCreateSchema(BaseModel):
     option_text: str
+    option_image: Optional[str] = None
 
 class QuestionCreateSchema(BaseModel):
     question_text: str
@@ -160,7 +161,7 @@ class QuestionCreateSchema(BaseModel):
     marks: float = 1.0
     negative_marks: float = 0.0
     correct_answer: str # the text of the correct option
-    options: List[str] # list of options text
+    options: List[Union[str, OptionCreateSchema]]
     explanation: Optional[str] = ""
     topic: Optional[str] = ""
     difficulty: Optional[str] = "medium"
@@ -429,10 +430,12 @@ def add_question(exam_id: int, data: QuestionCreateSchema, current_user: dict = 
     )
     question_id = cursor.lastrowid
     
-    for option_text in data.options:
+    for opt in data.options:
+        opt_text = opt if isinstance(opt, str) else opt.option_text
+        opt_img = None if isinstance(opt, str) else opt.option_image
         cursor.execute(
-            "INSERT INTO question_options (question_id, option_text) VALUES (?, ?)",
-            (question_id, option_text)
+            "INSERT INTO question_options (question_id, option_text, option_image) VALUES (?, ?, ?)",
+            (question_id, opt_text, opt_img)
         )
         
     conn.commit()
@@ -462,10 +465,12 @@ def update_question(exam_id: int, question_id: int, data: QuestionCreateSchema, 
     
     # Recreate options for simplicity
     cursor.execute("DELETE FROM question_options WHERE question_id = ?", (question_id,))
-    for option_text in data.options:
+    for opt in data.options:
+        opt_text = opt if isinstance(opt, str) else opt.option_text
+        opt_img = None if isinstance(opt, str) else opt.option_image
         cursor.execute(
-            "INSERT INTO question_options (question_id, option_text) VALUES (?, ?)",
-            (question_id, option_text)
+            "INSERT INTO question_options (question_id, option_text, option_image) VALUES (?, ?, ?)",
+            (question_id, opt_text, opt_img)
         )
         
     conn.commit()
@@ -752,7 +757,7 @@ def get_attempt_details(attempt_id: int, current_user: dict = Depends(get_curren
         
         # Fetch options in randomized order
         db_options = conn.execute("""
-            SELECT ao.original_option_id as id, qo.option_text
+            SELECT ao.original_option_id as id, qo.option_text, qo.option_image
             FROM attempt_options ao
             JOIN question_options qo ON ao.original_option_id = qo.id
             WHERE ao.attempt_question_id = ?

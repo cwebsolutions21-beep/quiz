@@ -244,9 +244,21 @@ function renderQuestion() {
             btn.classList.add('selected');
         }
         
+        let optImgHtml = '';
+        if (opt.option_image) {
+            optImgHtml = `
+                <div class="option-image-wrapper" style="margin-top: 0.5rem; text-align: left;">
+                    <img src="${opt.option_image}" alt="Option ${labels[idx]}" style="max-height: 150px; max-width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                </div>
+            `;
+        }
+        
         btn.innerHTML = `
             <span class="option-label">${labels[idx]}</span>
-            <span class="option-text">${opt.option_text}</span>
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <span class="option-text">${opt.option_text}</span>
+                ${optImgHtml}
+            </div>
         `;
         
         btn.onclick = () => selectOption(q.question_id, opt.id, btn);
@@ -672,7 +684,12 @@ function renderDetailedQuestions(questions) {
             if (isSelected) selectionIndicator = ' <strong>(Your Answer)</strong>';
             if (isCorrect) selectionIndicator += ' ✓';
             
-            optionsHtml += `<div class="${className}">${opt.option_text}${selectionIndicator}</div>`;
+            let optImgHtml = '';
+            if (opt.option_image) {
+                optImgHtml = `<br><img src="${opt.option_image}" alt="Option Image" style="max-height: 100px; margin-top: 0.25rem; border-radius: 4px; display: block; border: 1px solid rgba(255,255,255,0.1);">`;
+            }
+            
+            optionsHtml += `<div class="${className}">${opt.option_text}${selectionIndicator}${optImgHtml}</div>`;
         });
         optionsHtml += '</div>';
         

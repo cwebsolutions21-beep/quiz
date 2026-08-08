@@ -76,9 +76,16 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         question_id INTEGER NOT NULL,
         option_text TEXT NOT NULL,
+        option_image TEXT,
         FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
     );
     """)
+    
+    # Run migration for option_image column
+    try:
+        cursor.execute("ALTER TABLE question_options ADD COLUMN option_image TEXT")
+    except Exception:
+        pass
     
     # Attempts table
     cursor.execute("""

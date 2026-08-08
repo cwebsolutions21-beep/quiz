@@ -266,9 +266,13 @@ function selectQuestion(q) {
     // Set options
     const options = q.options || [];
     document.getElementById('q-opt-a').value = options[0] ? options[0].option_text : '';
+    document.getElementById('q-opt-a-image').value = options[0] ? (options[0].option_image || '') : '';
     document.getElementById('q-opt-b').value = options[1] ? options[1].option_text : '';
+    document.getElementById('q-opt-b-image').value = options[1] ? (options[1].option_image || '') : '';
     document.getElementById('q-opt-c').value = options[2] ? options[2].option_text : '';
+    document.getElementById('q-opt-c-image').value = options[2] ? (options[2].option_image || '') : '';
     document.getElementById('q-opt-d').value = options[3] ? options[3].option_text : '';
+    document.getElementById('q-opt-d-image').value = options[3] ? (options[3].option_image || '') : '';
     
     // Identify which index matches correct answer text
     let correctLetter = '';
@@ -289,7 +293,7 @@ function selectQuestion(q) {
     questionForm.classList.remove('hidden');
     document.getElementById('delete-q-btn').classList.remove('hidden');
 }
-
+    
 async function saveQuestion(e) {
     e.preventDefault();
     
@@ -311,7 +315,12 @@ async function saveQuestion(e) {
         marks: parseFloat(document.getElementById('q-marks').value),
         negative_marks: parseFloat(document.getElementById('q-neg-marks').value || 0.0),
         difficulty: document.getElementById('q-difficulty').value,
-        options: [optA, optB, optC, optD],
+        options: [
+            { option_text: optA, option_image: document.getElementById('q-opt-a-image').value || null },
+            { option_text: optB, option_image: document.getElementById('q-opt-b-image').value || null },
+            { option_text: optC, option_image: document.getElementById('q-opt-c-image').value || null },
+            { option_text: optD, option_image: document.getElementById('q-opt-d-image').value || null }
+        ],
         correct_answer: correctText,
         explanation: document.getElementById('q-explanation').value,
         topic: document.getElementById('q-topic').value,
