@@ -3,7 +3,15 @@
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": [
+          "app/**",
+          "static/**",
+          "index.html",
+          "quiz.db"
+        ]
+      }
     }
   ],
   "routes": [
