@@ -52,14 +52,21 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 def startup_event():
     init_db()
     conn = get_db_connection()
-    # Ensure teacher SANTHOSHINI exists
+    # Ensure teacher SANTHOSHINI exists with exact credentials
+    pwd_hash = hash_password("170617")
     teacher = conn.execute("SELECT id FROM users WHERE email = ?", ("schaitu1706@gmail.com",)).fetchone()
     if not teacher:
         cursor = conn.cursor()
-        pwd_hash = hash_password("170617")
         cursor.execute(
             "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'teacher')",
             ("SANTHOSHINI", "schaitu1706@gmail.com", pwd_hash)
+        )
+        conn.commit()
+    else:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE users SET name = ?, password_hash = ?, role = 'teacher' WHERE email = ?",
+            ("SANTHOSHINI", pwd_hash, "schaitu1706@gmail.com")
         )
         conn.commit()
         
