@@ -2,6 +2,7 @@ import datetime
 import json
 import random
 import time
+import os
 from typing import List, Dict, Set, Optional, Union
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
@@ -1225,12 +1226,16 @@ async def websocket_student(websocket: WebSocket, attempt_id: int, token: Option
 
 # SERVING THE SPA FRONTEND
 # Default index.html router
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+public_index = os.path.join(base_dir, "public", "index.html")
+public_static_dir = os.path.join(base_dir, "public", "static")
+
 @app.get("/")
 def serve_index():
-    return FileResponse("static/index.html")
+    return FileResponse(public_index)
 
 # Serve specific static files dynamically if static directory mounted
 try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.mount("/static", StaticFiles(directory=public_static_dir), name="static")
 except Exception:
     pass
