@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css?v=1.0.2">
+    <link rel="stylesheet" href="/static/css/styles.css?v=1.0.3">
 </head>
 <body class="dark-theme">
     <!-- Header/Navigation Bar -->
@@ -472,22 +472,30 @@
                                     <div class="option-input-row" style="flex-wrap: wrap; gap: 0.5rem 0.75rem;">
                                         <span class="opt-lbl">A</span>
                                         <input type="text" id="q-opt-a" required placeholder="Option A text" style="flex: 1; min-width: 180px;">
-                                        <input type="text" id="q-opt-a-image" placeholder="Opt A image (Base64 URL)" style="flex: 1; min-width: 180px;">
+                                        <input type="file" id="q-opt-a-file" accept="image/*" onchange="handleOptionImageUpload('a')" style="display: none;">
+                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-a-upload-btn" onclick="document.getElementById('q-opt-a-file').click()" style="min-width: 90px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
+                                        <input type="hidden" id="q-opt-a-image">
                                     </div>
                                     <div class="option-input-row" style="flex-wrap: wrap; gap: 0.5rem 0.75rem;">
                                         <span class="opt-lbl">B</span>
                                         <input type="text" id="q-opt-b" required placeholder="Option B text" style="flex: 1; min-width: 180px;">
-                                        <input type="text" id="q-opt-b-image" placeholder="Opt B image (Base64 URL)" style="flex: 1; min-width: 180px;">
+                                        <input type="file" id="q-opt-b-file" accept="image/*" onchange="handleOptionImageUpload('b')" style="display: none;">
+                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-b-upload-btn" onclick="document.getElementById('q-opt-b-file').click()" style="min-width: 90px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
+                                        <input type="hidden" id="q-opt-b-image">
                                     </div>
                                     <div class="option-input-row" style="flex-wrap: wrap; gap: 0.5rem 0.75rem;">
                                         <span class="opt-lbl">C</span>
                                         <input type="text" id="q-opt-c" required placeholder="Option C text" style="flex: 1; min-width: 180px;">
-                                        <input type="text" id="q-opt-c-image" placeholder="Opt C image (Base64 URL)" style="flex: 1; min-width: 180px;">
+                                        <input type="file" id="q-opt-c-file" accept="image/*" onchange="handleOptionImageUpload('c')" style="display: none;">
+                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-c-upload-btn" onclick="document.getElementById('q-opt-c-file').click()" style="min-width: 90px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
+                                        <input type="hidden" id="q-opt-c-image">
                                     </div>
                                     <div class="option-input-row" style="flex-wrap: wrap; gap: 0.5rem 0.75rem;">
                                         <span class="opt-lbl">D</span>
                                         <input type="text" id="q-opt-d" required placeholder="Option D text" style="flex: 1; min-width: 180px;">
-                                        <input type="text" id="q-opt-d-image" placeholder="Opt D image (Base64 URL)" style="flex: 1; min-width: 180px;">
+                                        <input type="file" id="q-opt-d-file" accept="image/*" onchange="handleOptionImageUpload('d')" style="display: none;">
+                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-d-upload-btn" onclick="document.getElementById('q-opt-d-file').click()" style="min-width: 90px; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
+                                        <input type="hidden" id="q-opt-d-image">
                                     </div>
                                 </div>
                             </div>
@@ -514,8 +522,12 @@
                                     <input type="text" id="q-topic" placeholder="e.g. Mechanics">
                                 </div>
                                 <div class="form-group col-6">
-                                    <label for="q-image">Optional Image (Base64 URL)</label>
-                                    <input type="text" id="q-image" placeholder="data:image/png;base64,...">
+                                    <label>Optional Image</label>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <input type="file" id="q-image-file" accept="image/*" onchange="handleQuestionImageUpload()" style="display: none;">
+                                        <button type="button" class="btn btn-outline btn-xs" id="q-image-upload-btn" onclick="document.getElementById('q-image-file').click()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; flex: 1;">🖼️ Upload Image</button>
+                                        <input type="hidden" id="q-image">
+                                    </div>
                                 </div>
                             </div>
 
@@ -547,8 +559,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/static/js/app.js?v=1.0.2"></script>
-    <script src="/static/js/student.js?v=1.0.2"></script>
-    <script src="/static/js/teacher.js?v=1.0.2"></script>
+    <script src="/static/js/app.js?v=1.0.3"></script>
+    <script src="/static/js/student.js?v=1.0.3"></script>
+    <script src="/static/js/teacher.js?v=1.0.3"></script>
 </body>
 </html>

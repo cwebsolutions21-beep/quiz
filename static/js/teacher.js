@@ -250,6 +250,7 @@ function openAddQuestionForm() {
     document.getElementById('qmanager-placeholder').classList.add('hidden');
     questionForm.classList.remove('hidden');
     document.getElementById('delete-q-btn').classList.add('hidden');
+    resetUploadButtons();
 }
 
 function selectQuestion(q) {
@@ -292,6 +293,7 @@ function selectQuestion(q) {
     document.getElementById('qmanager-placeholder').classList.add('hidden');
     questionForm.classList.remove('hidden');
     document.getElementById('delete-q-btn').classList.remove('hidden');
+    resetUploadButtons();
 }
     
 async function saveQuestion(e) {
@@ -693,4 +695,71 @@ function copyShareLink(examId, examTitle) {
         }
         document.body.removeChild(textArea);
     });
+}
+
+// Convert option image file selection to base64 data URL
+function handleOptionImageUpload(optionLetter) {
+    const fileInput = document.getElementById(`q-opt-${optionLetter}-file`);
+    const hiddenInput = document.getElementById(`q-opt-${optionLetter}-image`);
+    const btn = document.getElementById(`q-opt-${optionLetter}-upload-btn`);
+    
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        hiddenInput.value = e.target.result;
+        btn.innerHTML = '✅ Loaded';
+        btn.classList.add('btn-success');
+        showToast(`Option ${optionLetter.toUpperCase()} image uploaded!`, 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Convert question image file selection to base64 data URL
+function handleQuestionImageUpload() {
+    const fileInput = document.getElementById('q-image-file');
+    const hiddenInput = document.getElementById('q-image');
+    const btn = document.getElementById('q-image-upload-btn');
+    
+    const file = fileInput.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        hiddenInput.value = e.target.result;
+        btn.innerHTML = '✅ Image Loaded';
+        btn.classList.add('btn-success');
+        showToast('Question image uploaded!', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Reset upload button styling and status
+function resetUploadButtons() {
+    ['a', 'b', 'c', 'd'].forEach(let => {
+        const btn = document.getElementById(`q-opt-${let}-upload-btn`);
+        const hidden = document.getElementById(`q-opt-${let}-image`);
+        const fileInput = document.getElementById(`q-opt-${let}-file`);
+        if (fileInput) fileInput.value = '';
+        if (hidden && hidden.value) {
+            btn.innerHTML = '✅ Change';
+            btn.classList.add('btn-success');
+        } else if (btn) {
+            btn.innerHTML = '🖼️ Upload';
+            btn.classList.remove('btn-success');
+        }
+    });
+    
+    const qBtn = document.getElementById('q-image-upload-btn');
+    const qHidden = document.getElementById('q-image');
+    const qFileInput = document.getElementById('q-image-file');
+    if (qFileInput) qFileInput.value = '';
+    if (qHidden && qHidden.value) {
+        qBtn.innerHTML = '✅ Change Image';
+        qBtn.classList.add('btn-success');
+    } else if (qBtn) {
+        qBtn.innerHTML = '🖼️ Upload Image';
+        qBtn.classList.remove('btn-success');
+    }
 }
