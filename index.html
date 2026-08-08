@@ -462,36 +462,44 @@
                             <div class="form-group">
                                 <label>Options (Provide exactly 4 options)</label>
                                 <div class="options-inputs">
-                                    <div class="option-input-row" style="gap: 0.5rem 0.75rem;">
+                                    <div class="option-input-row">
                                         <span class="opt-lbl">A</span>
                                         <input type="text" id="q-opt-a" placeholder="Option A text (Optional if image loaded)" style="flex: 1; min-width: 0;">
                                         <input type="file" id="q-opt-a-file" accept="image/*" onchange="handleOptionImageUpload('a')" style="display: none;">
-                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-a-upload-btn" onclick="document.getElementById('q-opt-a-file').click()" style="width: 90px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
-                                        <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-a-clear-btn" onclick="clearOptionImage('a')" style="width: 30px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;" title="Clear Image">❌</button>
+                                        <div class="option-btn-group">
+                                            <button type="button" class="btn btn-outline btn-xs" id="q-opt-a-upload-btn" onclick="document.getElementById('q-opt-a-file').click()">🖼️ Upload</button>
+                                            <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-a-clear-btn" onclick="clearOptionImage('a')" title="Clear Image">❌ Clear</button>
+                                        </div>
                                         <input type="hidden" id="q-opt-a-image">
                                     </div>
-                                    <div class="option-input-row" style="gap: 0.5rem 0.75rem;">
+                                    <div class="option-input-row">
                                         <span class="opt-lbl">B</span>
                                         <input type="text" id="q-opt-b" placeholder="Option B text (Optional if image loaded)" style="flex: 1; min-width: 0;">
                                         <input type="file" id="q-opt-b-file" accept="image/*" onchange="handleOptionImageUpload('b')" style="display: none;">
-                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-b-upload-btn" onclick="document.getElementById('q-opt-b-file').click()" style="width: 90px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
-                                        <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-b-clear-btn" onclick="clearOptionImage('b')" style="width: 30px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;" title="Clear Image">❌</button>
+                                        <div class="option-btn-group">
+                                            <button type="button" class="btn btn-outline btn-xs" id="q-opt-b-upload-btn" onclick="document.getElementById('q-opt-b-file').click()">🖼️ Upload</button>
+                                            <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-b-clear-btn" onclick="clearOptionImage('b')" title="Clear Image">❌ Clear</button>
+                                        </div>
                                         <input type="hidden" id="q-opt-b-image">
                                     </div>
-                                    <div class="option-input-row" style="gap: 0.5rem 0.75rem;">
+                                    <div class="option-input-row">
                                         <span class="opt-lbl">C</span>
                                         <input type="text" id="q-opt-c" placeholder="Option C text (Optional if image loaded)" style="flex: 1; min-width: 0;">
                                         <input type="file" id="q-opt-c-file" accept="image/*" onchange="handleOptionImageUpload('c')" style="display: none;">
-                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-c-upload-btn" onclick="document.getElementById('q-opt-c-file').click()" style="width: 90px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
-                                        <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-c-clear-btn" onclick="clearOptionImage('c')" style="width: 30px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;" title="Clear Image">❌</button>
+                                        <div class="option-btn-group">
+                                            <button type="button" class="btn btn-outline btn-xs" id="q-opt-c-upload-btn" onclick="document.getElementById('q-opt-c-file').click()">🖼️ Upload</button>
+                                            <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-c-clear-btn" onclick="clearOptionImage('c')" title="Clear Image">❌ Clear</button>
+                                        </div>
                                         <input type="hidden" id="q-opt-c-image">
                                     </div>
-                                    <div class="option-input-row" style="gap: 0.5rem 0.75rem;">
+                                    <div class="option-input-row">
                                         <span class="opt-lbl">D</span>
                                         <input type="text" id="q-opt-d" placeholder="Option D text (Optional if image loaded)" style="flex: 1; min-width: 0;">
                                         <input type="file" id="q-opt-d-file" accept="image/*" onchange="handleOptionImageUpload('d')" style="display: none;">
-                                        <button type="button" class="btn btn-outline btn-xs" id="q-opt-d-upload-btn" onclick="document.getElementById('q-opt-d-file').click()" style="width: 90px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem;">🖼️ Upload</button>
-                                        <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-d-clear-btn" onclick="clearOptionImage('d')" style="width: 30px; flex-shrink: 0; padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;" title="Clear Image">❌</button>
+                                        <div class="option-btn-group">
+                                            <button type="button" class="btn btn-outline btn-xs" id="q-opt-d-upload-btn" onclick="document.getElementById('q-opt-d-file').click()">🖼️ Upload</button>
+                                            <button type="button" class="btn btn-danger-outline btn-xs hidden" id="q-opt-d-clear-btn" onclick="clearOptionImage('d')" title="Clear Image">❌ Clear</button>
+                                        </div>
                                         <input type="hidden" id="q-opt-d-image">
                                     </div>
                                 </div>
