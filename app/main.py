@@ -183,7 +183,7 @@ class QuestionCreateSchema(BaseModel):
     marks: float = 1.0
     negative_marks: float = 0.0
     correct_answer: str # the text of the correct option
-    options: List[Union[str, OptionCreateSchema]]
+    options: List[Union[OptionCreateSchema, str]]
     explanation: Optional[str] = ""
     topic: Optional[str] = ""
     difficulty: Optional[str] = "medium"
