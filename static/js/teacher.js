@@ -395,9 +395,15 @@ async function importQuestions(e) {
     const reader = new FileReader();
     reader.onload = async (evt) => {
         try {
-            const list = JSON.parse(evt.target.result);
+            let list = JSON.parse(evt.target.result);
+            
+            // Proactively handle wrapper objects e.g., { "questions": [...] }
+            if (!Array.isArray(list) && list && typeof list === 'object' && Array.isArray(list.questions)) {
+                list = list.questions;
+            }
+            
             if (!Array.isArray(list)) {
-                throw new Error('File must be a JSON array of questions');
+                throw new Error('File must be a JSON array of questions, or a JSON object containing a "questions" list.');
             }
             
             // Send payload to backend
