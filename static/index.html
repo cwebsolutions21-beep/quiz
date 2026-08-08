@@ -42,14 +42,39 @@
                 <form id="login-form" class="auth-form active">
                     <h2>Welcome Back</h2>
                     <p class="subtitle">Please sign in to access your exam dashboard.</p>
+                    
                     <div class="form-group">
-                        <label for="login-email">Email Address</label>
-                        <input type="email" id="login-email" required placeholder="name@college.edu">
+                        <label>Login As</label>
+                        <div style="display: flex; gap: 1.5rem; margin-bottom: 1rem;">
+                            <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem;">
+                                <input type="radio" name="login-role" value="student" checked onchange="toggleLoginFields('student')"> Student
+                            </label>
+                            <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem;">
+                                <input type="radio" name="login-role" value="teacher" onchange="toggleLoginFields('teacher')"> Teacher / Admin
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" required placeholder="••••••••">
+
+                    <!-- Student Login Fields -->
+                    <div id="login-student-fields">
+                        <div class="form-group">
+                            <label for="login-roll">Roll Number</label>
+                            <input type="text" id="login-roll" required placeholder="e.g. 21CS1001">
+                        </div>
                     </div>
+
+                    <!-- Teacher Login Fields -->
+                    <div id="login-teacher-fields" class="hidden">
+                        <div class="form-group">
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" placeholder="name@college.edu">
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary btn-block">Sign In</button>
                 </form>
 
@@ -57,30 +82,19 @@
                 <form id="register-form" class="auth-form">
                     <h2>Create Account</h2>
                     <p class="subtitle">Join as a teacher to schedule exams, or as a student to take them.</p>
-                    <div class="form-group">
-                        <label for="reg-name">Full Name</label>
-                        <input type="text" id="reg-name" required placeholder="John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-email">Email Address</label>
-                        <input type="email" id="reg-email" required placeholder="john.doe@college.edu">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" required placeholder="Min 6 characters">
-                    </div>
+                    
                     <div class="form-group">
                         <label>Account Role</label>
-                        <div class="role-selector">
+                        <div class="role-selector" style="margin-bottom: 1.25rem;">
                             <label class="role-option">
-                                <input type="radio" name="reg-role" value="student" checked>
+                                <input type="radio" name="reg-role" value="student" checked onchange="toggleRegFields('student')">
                                 <span class="role-box">
                                     <span class="role-title">Student</span>
                                     <span class="role-desc">Attempt assigned exams and view results</span>
                                 </span>
                             </label>
                             <label class="role-option">
-                                <input type="radio" name="reg-role" value="teacher">
+                                <input type="radio" name="reg-role" value="teacher" onchange="toggleRegFields('teacher')">
                                 <span class="role-box">
                                     <span class="role-title">Teacher / Admin</span>
                                     <span class="role-desc">Create exams, manage questions, monitor live</span>
@@ -88,6 +102,42 @@
                             </label>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" required placeholder="John Doe">
+                    </div>
+
+                    <!-- Student Registration Fields -->
+                    <div id="reg-student-fields">
+                        <div class="form-group">
+                            <label for="reg-roll">Roll Number</label>
+                            <input type="text" id="reg-roll" required placeholder="e.g. 21CS1001">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="reg-section">Section</label>
+                                <input type="text" id="reg-section" required placeholder="e.g. A">
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="reg-year">Year</label>
+                                <input type="text" id="reg-year" required placeholder="e.g. 3rd Year">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Registration Fields -->
+                    <div id="reg-teacher-fields" class="hidden">
+                        <div class="form-group">
+                            <label for="reg-email">Email Address</label>
+                            <input type="email" id="reg-email" placeholder="john.doe@college.edu">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password</label>
+                            <input type="password" id="reg-password" placeholder="Min 6 characters">
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary btn-block">Register Account</button>
                 </form>
             </div>
@@ -279,15 +329,18 @@
                     <h1 id="monitor-exam-title">Live Monitoring</h1>
                     <p class="subtitle">Real-time supervision of active candidate attempts.</p>
                 </div>
-                <div class="monitor-stats glass">
-                    <div class="m-stat">
-                        <span class="m-val" id="monitor-active-count">0</span>
-                        <span class="m-lbl">Active Students</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
+                    <div class="monitor-stats glass">
+                        <div class="m-stat">
+                            <span class="m-val" id="monitor-active-count">0</span>
+                            <span class="m-lbl">Active Students</span>
+                        </div>
+                        <div class="m-stat">
+                            <span class="m-val" id="monitor-submitted-count">0</span>
+                            <span class="m-lbl">Submitted</span>
+                        </div>
                     </div>
-                    <div class="m-stat">
-                        <span class="m-val" id="monitor-submitted-count">0</span>
-                        <span class="m-lbl">Submitted</span>
-                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="exportMonitorCSV()">📥 Export Results (CSV)</button>
                 </div>
             </div>
 

@@ -46,19 +46,27 @@ def run_tests():
     # Register students
     s1_reg = client.post("/api/auth/register", json={
         "name": "Alice Student",
-        "email": "alice@college.edu",
-        "password": "studentpassword123",
+        "roll_no": "21CS1001",
+        "section": "A",
+        "year": "3rd Year",
         "role": "student"
     })
+    if s1_reg.status_code != 200:
+        print("Student 1 Registration Failed Code:", s1_reg.status_code)
+        print("Student 1 Registration Failed Body:", s1_reg.text)
     assert s1_reg.status_code == 200, "Student 1 registration failed"
     s1_token = s1_reg.json()["token"]
     
     s2_reg = client.post("/api/auth/register", json={
         "name": "Bob Student",
-        "email": "bob@college.edu",
-        "password": "studentpassword123",
+        "roll_no": "21CS1002",
+        "section": "B",
+        "year": "3rd Year",
         "role": "student"
     })
+    if s2_reg.status_code != 200:
+        print("Student 2 Registration Failed Code:", s2_reg.status_code)
+        print("Student 2 Registration Failed Body:", s2_reg.text)
     assert s2_reg.status_code == 200, "Student 2 registration failed"
     s2_token = s2_reg.json()["token"]
     
@@ -245,8 +253,9 @@ def run_tests():
     # Register student 3
     s3_reg = client.post("/api/auth/register", json={
         "name": "Charlie Student",
-        "email": "charlie@college.edu",
-        "password": "studentpassword123",
+        "roll_no": "21CS1003",
+        "section": "A",
+        "year": "3rd Year",
         "role": "student"
     })
     s3_token = s3_reg.json()["token"]

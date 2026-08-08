@@ -18,11 +18,23 @@ def init_db():
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        role TEXT NOT NULL CHECK(role IN ('teacher', 'student'))
+        email TEXT UNIQUE, -- Nullable for students
+        password_hash TEXT, -- Nullable for students
+        role TEXT NOT NULL CHECK(role IN ('teacher', 'student')),
+        roll_no TEXT UNIQUE,
+        section TEXT,
+        year TEXT
     );
     """)
+    
+    # Run quick migrations for existing databases
+    for col in [("roll_no", "TEXT"), ("section", "TEXT"), ("year", "TEXT")]:
+        try:
+            cursor.execute(f"ALTER TABLE users ADD COLUMN {col[0]} {col[1]}")
+        except Exception:
+            pass
+            
+    # Also ensure email is nullable (SQLite allows altering table or it is already handled)
     
     # Exams table
     cursor.execute("""

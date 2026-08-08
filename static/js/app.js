@@ -130,6 +130,57 @@ function switchAuthTab(tab) {
     }
 }
 
+// Toggle fields in auth forms based on role
+function toggleLoginFields(role) {
+    const studentFields = document.getElementById('login-student-fields');
+    const teacherFields = document.getElementById('login-teacher-fields');
+    const loginRoll = document.getElementById('login-roll');
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+    
+    if (role === 'student') {
+        studentFields.classList.remove('hidden');
+        teacherFields.classList.add('hidden');
+        loginRoll.setAttribute('required', 'required');
+        loginEmail.removeAttribute('required');
+        loginPassword.removeAttribute('required');
+    } else {
+        studentFields.classList.add('hidden');
+        teacherFields.classList.remove('hidden');
+        loginRoll.removeAttribute('required');
+        loginEmail.setAttribute('required', 'required');
+        loginPassword.setAttribute('required', 'required');
+    }
+}
+
+function toggleRegFields(role) {
+    const studentFields = document.getElementById('reg-student-fields');
+    const teacherFields = document.getElementById('reg-teacher-fields');
+    const regRoll = document.getElementById('reg-roll');
+    const regSection = document.getElementById('reg-section');
+    const regYear = document.getElementById('reg-year');
+    const regEmail = document.getElementById('reg-email');
+    const regPassword = document.getElementById('reg-password');
+    
+    if (role === 'student') {
+        studentFields.classList.remove('hidden');
+        teacherFields.classList.add('hidden');
+        regRoll.setAttribute('required', 'required');
+        regSection.setAttribute('required', 'required');
+        regYear.setAttribute('required', 'required');
+        regEmail.removeAttribute('required');
+        regPassword.removeAttribute('required');
+    } else {
+        studentFields.classList.add('hidden');
+        teacherFields.classList.remove('hidden');
+        regRoll.removeAttribute('required');
+        regSection.removeAttribute('required');
+        regYear.removeAttribute('required');
+        regEmail.setAttribute('required', 'required');
+        regPassword.setAttribute('required', 'required');
+    }
+}
+
 // Header UI updates
 function updateHeader() {
     const userInfo = document.getElementById('user-info');
@@ -152,13 +203,24 @@ function updateHeader() {
 // Handle Form Submissions
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
+    const role = document.querySelector('input[name="login-role"]:checked').value;
+    
+    let payload = {};
+    if (role === 'student') {
+        payload = {
+            roll_no: document.getElementById('login-roll').value
+        };
+    } else {
+        payload = {
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-password').value
+        };
+    }
     
     try {
         const data = await fetchApi('/api/auth/login', {
             method: 'POST',
-            body: { email, password }
+            body: payload
         });
         
         localStorage.setItem('token', data.token);
@@ -179,14 +241,22 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('reg-name').value;
-    const email = document.getElementById('reg-email').value;
-    const password = document.getElementById('reg-password').value;
     const role = document.querySelector('input[name="reg-role"]:checked').value;
+    
+    let payload = { name, role };
+    if (role === 'student') {
+        payload.roll_no = document.getElementById('reg-roll').value;
+        payload.section = document.getElementById('reg-section').value;
+        payload.year = document.getElementById('reg-year').value;
+    } else {
+        payload.email = document.getElementById('reg-email').value;
+        payload.password = document.getElementById('reg-password').value;
+    }
     
     try {
         const data = await fetchApi('/api/auth/register', {
             method: 'POST',
-            body: { name, email, password, role }
+            body: payload
         });
         
         localStorage.setItem('token', data.token);

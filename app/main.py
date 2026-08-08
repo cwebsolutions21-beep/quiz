@@ -112,13 +112,17 @@ student_manager = StudentConnectionManager()
 # Pydantic schemas
 class RegisterSchema(BaseModel):
     name: str
-    email: EmailStr
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
     role: str
+    roll_no: Optional[str] = None
+    section: Optional[str] = None
+    year: Optional[str] = None
 
 class LoginSchema(BaseModel):
-    email: EmailStr
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
+    roll_no: Optional[str] = None
 
 class ExamCreateSchema(BaseModel):
     title: str
@@ -159,25 +163,53 @@ def register(data: RegisterSchema, response: Response):
         raise HTTPException(status_code=400, detail="Invalid role")
         
     conn = get_db_connection()
-    user_exists = conn.execute("SELECT id FROM users WHERE email = ?", (data.email,)).fetchone()
-    if user_exists:
-        conn.close()
-        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    if data.role == "teacher":
+        if not data.email or not data.password:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Email and password required for teacher account")
+        user_exists = conn.execute("SELECT id FROM users WHERE email = ?", (data.email,)).fetchone()
+        if user_exists:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Email already registered")
+            
+        pwd_hash = hash_password(data.password)
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'teacher')",
+                (data.name, data.email, pwd_hash)
+            )
+            user_id = cursor.lastrowid
+            conn.commit()
+        except Exception as e:
+            conn.close()
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            
+        payload = {"user_id": user_id, "email": data.email, "role": "teacher", "name": data.name}
+    else:
+        if not data.roll_no or not data.section or not data.year:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Roll number, section, and year required for student account")
+        user_exists = conn.execute("SELECT id FROM users WHERE roll_no = ?", (data.roll_no,)).fetchone()
+        if user_exists:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Roll number already registered")
+            
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO users (name, role, roll_no, section, year) VALUES (?, 'student', ?, ?, ?)",
+                (data.name, data.roll_no, data.section, data.year)
+            )
+            user_id = cursor.lastrowid
+            conn.commit()
+        except Exception as e:
+            conn.close()
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            
+        payload = {"user_id": user_id, "roll_no": data.roll_no, "role": "student", "name": data.name}
         
-    pwd_hash = hash_password(data.password)
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-            (data.name, data.email, pwd_hash, data.role)
-        )
-        user_id = cursor.lastrowid
-        conn.commit()
-    except Exception as e:
-        conn.close()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-        
-    payload = {"user_id": user_id, "email": data.email, "role": data.role, "name": data.name}
     token = create_token(payload)
     response.set_cookie(key="token", value=token, httponly=True, samesite="lax")
     conn.close()
@@ -186,13 +218,30 @@ def register(data: RegisterSchema, response: Response):
 @app.post("/api/auth/login")
 def login(data: LoginSchema, response: Response):
     conn = get_db_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (data.email,)).fetchone()
-    conn.close()
     
-    if not user or not verify_password(data.password, user["password_hash"]):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    if data.roll_no:
+        # Student Login using roll number
+        user = conn.execute("SELECT * FROM users WHERE roll_no = ? AND role = 'student'", (data.roll_no,)).fetchone()
+        conn.close()
         
-    payload = {"user_id": user["id"], "email": user["email"], "role": user["role"], "name": user["name"]}
+        if not user:
+            raise HTTPException(status_code=400, detail="Roll number not registered.")
+            
+        payload = {"user_id": user["id"], "roll_no": user["roll_no"], "role": "student", "name": user["name"]}
+    else:
+        # Teacher Login using email / password
+        if not data.email or not data.password:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Email and password required")
+            
+        user = conn.execute("SELECT * FROM users WHERE email = ? AND role = 'teacher'", (data.email,)).fetchone()
+        conn.close()
+        
+        if not user or not verify_password(data.password, user["password_hash"]):
+            raise HTTPException(status_code=400, detail="Incorrect email or password")
+            
+        payload = {"user_id": user["id"], "email": user["email"], "role": "teacher", "name": user["name"]}
+        
     token = create_token(payload)
     response.set_cookie(key="token", value=token, httponly=True, samesite="lax")
     return {"status": "success", "user": payload, "token": token}
@@ -992,7 +1041,7 @@ def monitor_exam_attempts(exam_id: int, current_user: dict = Depends(get_current
     # Fetch attempts
     attempts = conn.execute("""
         SELECT a.id as attempt_id, a.started_at, a.submitted_at, a.status, a.submission_type, a.violation_reason, a.score,
-               u.id as student_id, u.name as student_name, u.email as student_email
+               u.id as student_id, u.name as student_name, u.email as student_email, u.roll_no, u.section, u.year
         FROM attempts a
         JOIN users u ON a.student_id = u.id
         WHERE a.exam_id = ?

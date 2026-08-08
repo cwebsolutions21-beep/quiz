@@ -3,6 +3,7 @@ let activeQuestionId = null;
 let examQuestionsList = [];
 let monitorSocket = null;
 let monitorInterval = null;
+let lastMonitorData = [];
 
 // Load Teacher Dashboard
 async function loadTeacherDashboard() {
@@ -457,6 +458,7 @@ async function refreshMonitorTable() {
     
     try {
         const attempts = await fetchApi(`/api/exams/${activeExamId}/monitor`);
+        lastMonitorData = attempts;
         const tbody = document.getElementById('monitor-students-tbody');
         tbody.innerHTML = '';
         
@@ -517,7 +519,9 @@ async function refreshMonitorTable() {
             tr.innerHTML = `
                 <td>
                     <strong>${att.student_name}</strong><br>
-                    <small class="text-muted">${att.student_email}</small>
+                    <small class="text-muted">
+                        ${att.roll_no ? `Roll: ${att.roll_no} | Sec: ${att.section} | Year: ${att.year}` : (att.student_email || '—')}
+                    </small>
                 </td>
                 <td>${statusBadge}</td>
                 <td>${started}</td>
@@ -605,4 +609,46 @@ async function viewDetailedCandidateResult(attemptId) {
     } catch (error) {
         showToast(error.message, 'danger');
     }
+}
+
+// Export candidate monitoring results to CSV
+function exportMonitorCSV() {
+    if (!lastMonitorData || lastMonitorData.length === 0) {
+        showToast('No student attempts to export.', 'warning');
+        return;
+    }
+    
+    // Header row
+    const headers = ['Name', 'Roll Number', 'Section', 'Year', 'Email', 'Live Status', 'Started Time', 'Submitted Time', 'Status', 'Score', 'Violation Reason'];
+    
+    const rows = lastMonitorData.map(att => [
+        att.student_name,
+        att.roll_no || '—',
+        att.section || '—',
+        att.year || '—',
+        att.student_email || '—',
+        att.live_status,
+        att.started_at ? new Date(att.started_at).toLocaleString() : '—',
+        att.submitted_at ? new Date(att.submitted_at).toLocaleString() : '—',
+        att.status,
+        att.score !== null ? att.score : '—',
+        att.status === 'violated' ? (att.violation_reason || att.submission_type) : 'None'
+    ]);
+    
+    // Convert rows to double-quoted escaped CSV format
+    const csvString = [
+        headers.join(','), 
+        ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `exam_${activeExamId}_results.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Results exported to CSV successfully.', 'success');
 }
