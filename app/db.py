@@ -1,7 +1,23 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "quiz.db")
+import shutil
+
+# Use /data directory on Render or cloud hosts if available for persistence, otherwise use local path
+packaged_db = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "quiz.db")
+
+if os.path.exists("/data") and os.path.isdir("/data"):
+    DB_PATH = "/data/quiz.db"
+elif "VERCEL" in os.environ or os.environ.get("VERCEL_ENV"):
+    DB_PATH = "/tmp/quiz.db"
+    # Copy the packaged database to /tmp so we start with seed data
+    if not os.path.exists(DB_PATH) and os.path.exists(packaged_db):
+        try:
+            shutil.copy2(packaged_db, DB_PATH)
+        except Exception as e:
+            print("Failed to copy database to /tmp:", e)
+else:
+    DB_PATH = packaged_db
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)

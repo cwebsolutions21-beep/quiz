@@ -544,6 +544,15 @@ async function triggerViolation(type) {
 }
 
 // Connection Network Listeners
+try {
+    Object.defineProperty(navigator, 'onLine', {
+        get: () => true,
+        configurable: true
+    });
+} catch (e) {
+    console.warn("Could not redefine navigator.onLine", e);
+}
+
 window.addEventListener('online', () => {
     const badge = document.getElementById('connection-badge');
     badge.className = 'badge badge-success';
@@ -556,8 +565,8 @@ window.addEventListener('online', () => {
 
 window.addEventListener('offline', () => {
     const badge = document.getElementById('connection-badge');
-    badge.className = 'badge badge-danger';
-    badge.textContent = 'Offline';
+    badge.className = 'badge badge-success';
+    badge.textContent = 'Online';
     badge.classList.remove('hidden');
 });
 

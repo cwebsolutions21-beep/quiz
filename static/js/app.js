@@ -206,9 +206,14 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const role = document.querySelector('input[name="login-role"]:checked').value;
     
     let payload = {};
+    let url = '/api/auth/login';
     if (role === 'student') {
+        url = '/api/auth/student_guest_login';
         payload = {
-            roll_no: document.getElementById('login-roll').value
+            name: document.getElementById('login-student-name').value,
+            roll_no: document.getElementById('login-roll').value,
+            section: document.getElementById('login-student-section').value,
+            year: document.getElementById('login-student-year').value
         };
     } else {
         payload = {
@@ -218,7 +223,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     }
     
     try {
-        const data = await fetchApi('/api/auth/login', {
+        const data = await fetchApi(url, {
             method: 'POST',
             body: payload
         });
@@ -241,17 +246,14 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('reg-name').value;
-    const role = document.querySelector('input[name="reg-role"]:checked').value;
+    const role = 'teacher';
     
-    let payload = { name, role };
-    if (role === 'student') {
-        payload.roll_no = document.getElementById('reg-roll').value;
-        payload.section = document.getElementById('reg-section').value;
-        payload.year = document.getElementById('reg-year').value;
-    } else {
-        payload.email = document.getElementById('reg-email').value;
-        payload.password = document.getElementById('reg-password').value;
-    }
+    let payload = { 
+        name, 
+        role,
+        email: document.getElementById('reg-email').value,
+        password: document.getElementById('reg-password').value
+    };
     
     try {
         const data = await fetchApi('/api/auth/register', {
@@ -274,6 +276,36 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     }
 });
 
+function adjustAuthUIForExam() {
+    const isExamMode = !!localStorage.getItem('redirect_exam_id');
+    const authTabs = document.querySelector('.auth-tabs');
+    const loginRoleGroup = document.querySelector('input[name="login-role"]')?.closest('.form-group');
+    const formTitle = document.querySelector('#login-form h2');
+    const formSubtitle = document.querySelector('#login-form .subtitle');
+    const submitBtn = document.querySelector('#login-form button[type="submit"]');
+
+    if (isExamMode) {
+        if (authTabs) authTabs.classList.add('hidden');
+        if (loginRoleGroup) loginRoleGroup.classList.add('hidden');
+        if (formTitle) formTitle.textContent = 'Enter Details to Start Exam';
+        if (formSubtitle) formSubtitle.textContent = 'Please provide your details below to proceed to the examination.';
+        if (submitBtn) submitBtn.textContent = 'Begin Examination';
+        
+        // Force select student and toggle student fields
+        const studentRadio = document.querySelector('input[name="login-role"][value="student"]');
+        if (studentRadio) {
+            studentRadio.checked = true;
+            toggleLoginFields('student');
+        }
+    } else {
+        if (authTabs) authTabs.classList.remove('hidden');
+        if (loginRoleGroup) loginRoleGroup.classList.remove('hidden');
+        if (formTitle) formTitle.textContent = 'Welcome Back';
+        if (formSubtitle) formSubtitle.textContent = 'Please sign in to access your exam dashboard.';
+        if (submitBtn) submitBtn.textContent = 'Sign In / Start Exam';
+    }
+}
+
 document.getElementById('logout-btn').addEventListener('click', async () => {
     try {
         await fetchApi('/api/auth/logout', { method: 'POST' });
@@ -282,6 +314,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     currentUser = null;
     updateHeader();
     showView('auth');
+    adjustAuthUIForExam(); // Ensure auth UI resets if we logout
     showToast('Logged out successfully', 'success');
 });
 
@@ -293,6 +326,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (sharedExamId) {
         localStorage.setItem('redirect_exam_id', sharedExamId);
     }
+    
+    // Adjust UI depending on if we have a shared exam redirect pending
+    adjustAuthUIForExam();
 
     // Check if token exists
     const token = localStorage.getItem('token');

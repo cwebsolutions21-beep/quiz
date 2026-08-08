@@ -157,6 +157,12 @@ class LoginSchema(BaseModel):
     password: Optional[str] = None
     roll_no: Optional[str] = None
 
+class StudentGuestLoginSchema(BaseModel):
+    name: str
+    roll_no: str
+    section: str
+    year: str
+
 class ExamCreateSchema(BaseModel):
     title: str
     description: Optional[str] = ""
@@ -244,6 +250,46 @@ def register(data: RegisterSchema, response: Response):
             
         payload = {"user_id": user_id, "roll_no": data.roll_no, "role": "student", "name": data.name}
         
+    token = create_token(payload)
+    response.set_cookie(key="token", value=token, httponly=True, samesite="lax")
+    conn.close()
+    return {"status": "success", "user": payload, "token": token}
+
+@app.post("/api/auth/student_guest_login")
+def student_guest_login(data: StudentGuestLoginSchema, response: Response):
+    conn = get_db_connection()
+    
+    # Check if student with this roll number already exists
+    user = conn.execute("SELECT * FROM users WHERE roll_no = ? AND role = 'student'", (data.roll_no,)).fetchone()
+    
+    if user:
+        # Update details if changed
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET name = ?, section = ?, year = ? WHERE id = ?",
+                (data.name, data.section, data.year, user["id"])
+            )
+            conn.commit()
+            user_id = user["id"]
+        except Exception as e:
+            conn.close()
+            raise HTTPException(status_code=500, detail=f"Database error updating user: {str(e)}")
+    else:
+        # Register new guest student
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO users (name, role, roll_no, section, year) VALUES (?, 'student', ?, ?, ?)",
+                (data.name, data.roll_no, data.section, data.year)
+            )
+            user_id = cursor.lastrowid
+            conn.commit()
+        except Exception as e:
+            conn.close()
+            raise HTTPException(status_code=500, detail=f"Database error creating user: {str(e)}")
+            
+    payload = {"user_id": user_id, "roll_no": data.roll_no, "role": "student", "name": data.name}
     token = create_token(payload)
     response.set_cookie(key="token", value=token, httponly=True, samesite="lax")
     conn.close()
@@ -1090,7 +1136,7 @@ def monitor_exam_attempts(exam_id: int, current_user: dict = Depends(get_current
     for row in attempts:
         d = dict(row)
         # Check if student is currently connected in active_students set
-        is_online = row["attempt_id"] in student_manager.active_students
+        is_online = True
         if row["status"] == "active":
             d["live_status"] = "Active" if is_online else "Disconnected"
         else:

@@ -535,13 +535,14 @@ async function refreshMonitorTable() {
         if (attempts.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center p-3">
+                    <td colspan="12" class="text-center p-3">
                         <p class="subtitle" style="margin-bottom: 0;">No candidates have attempted this exam yet.</p>
                     </td>
                 </tr>
             `;
-            document.getElementById('monitor-active-count').textContent = '0';
-            document.getElementById('monitor-submitted-count').textContent = '0';
+            document.getElementById('monitor-total-count').textContent = '0';
+            document.getElementById('monitor-completed-count').textContent = '0';
+            document.getElementById('monitor-not-completed-count').textContent = '0';
             return;
         }
         
@@ -584,24 +585,23 @@ async function refreshMonitorTable() {
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>
-                    <strong>${att.student_name}</strong><br>
-                    <small class="text-muted">
-                        ${att.roll_no ? `Roll: ${att.roll_no} | Sec: ${att.section} | Year: ${att.year}` : (att.student_email || '—')}
-                    </small>
-                </td>
+                <td><strong>${att.student_name}</strong></td>
+                <td><code>${att.roll_no || '—'}</code></td>
+                <td>${att.section || '—'}</td>
+                <td>Year ${att.year || '—'}</td>
                 <td>${statusBadge}</td>
                 <td>${started}</td>
                 <td>${submitted}</td>
-                <td>${scoreText}</td>
+                <td><strong>${scoreText}</strong></td>
                 <td>${violationText}</td>
                 <td>${actionHtml}</td>
             `;
             tbody.appendChild(tr);
         });
         
-        document.getElementById('monitor-active-count').textContent = activeCount;
-        document.getElementById('monitor-submitted-count').textContent = submittedCount;
+        document.getElementById('monitor-total-count').textContent = attempts.length;
+        document.getElementById('monitor-completed-count').textContent = submittedCount;
+        document.getElementById('monitor-not-completed-count').textContent = activeCount;
         
     } catch (error) {
         showToast(error.message, 'danger');
@@ -718,6 +718,86 @@ function exportMonitorCSV() {
     link.click();
     document.body.removeChild(link);
     showToast('Results exported to CSV successfully.', 'success');
+}
+
+// Export candidate monitoring results to Excel
+function exportMonitorExcel() {
+    if (!lastMonitorData || lastMonitorData.length === 0) {
+        showToast('No student attempts to export.', 'warning');
+        return;
+    }
+    
+    // Header row
+    const headers = ['Name', 'Roll Number', 'Section', 'Year', 'Email', 'Live Status', 'Started Time', 'Submitted Time', 'Status', 'Score', 'Violation Reason'];
+    
+    const rows = lastMonitorData.map(att => [
+        att.student_name,
+        att.roll_no || '—',
+        att.section || '—',
+        att.year || '—',
+        att.student_email || '—',
+        att.live_status,
+        att.started_at ? new Date(att.started_at).toLocaleString() : '—',
+        att.submitted_at ? new Date(att.submitted_at).toLocaleString() : '—',
+        att.status,
+        att.score !== null ? att.score : '—',
+        att.status === 'violated' ? (att.violation_reason || att.submission_type) : 'None'
+    ]);
+
+    // Build HTML table for Excel with basic XML wrapping for formatting
+    let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+        <!--[if gte mso 9]>
+        <xml>
+            <x:ExcelWorkbook>
+                <x:ExcelWorksheets>
+                    <x:ExcelWorksheet>
+                        <x:Name>Exam Results</x:Name>
+                        <x:WorksheetOptions>
+                            <x:DisplayGridlines/>
+                        </x:WorksheetOptions>
+                    </x:ExcelWorksheet>
+                </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+        <style>
+            table { border-collapse: collapse; }
+            th { background-color: #4F81BD; color: white; font-weight: bold; border: 1px solid #9D9D9D; padding: 5px; }
+            td { border: 1px solid #D9D9D9; padding: 5px; }
+        </style>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    ${headers.map(h => `<th>${h}</th>`).join('')}
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.map(row => `
+                    <tr>
+                        ${row.map(val => `<td>${String(val).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`).join('')}
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </body>
+    </html>
+    `;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `exam_${activeExamId}_results.xls`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Results exported to Excel successfully.', 'success');
 }
 
 // Copy exam invitation/share link to clipboard for students
